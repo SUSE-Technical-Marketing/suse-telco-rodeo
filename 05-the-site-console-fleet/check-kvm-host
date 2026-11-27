@@ -1,0 +1,62 @@
+#!/bin/bash
+# Chapter 5 check: both sites carry demo=true and site-type=downstream, the
+# GitRepo telco-site-console exists, its Bundle is ready on both clusters,
+# and each site's console answers on NodePort 30080.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH. Wait a minute and check again."
+  exit 1
+fi
+
+for c in site-co-01 site-ran-01; do
+  id="$(rancher_cluster_id "${c}")"
+  if [ -z "${id}" ]; then
+    echo "FAIL: Rancher does not know a cluster named ${c}. Finish chapters 3 and 4 first."
+    exit 1
+  fi
+  labels="$(kc "get clusters.management.cattle.io ${id} -o go-template='{{index .metadata.labels \"demo\"}} {{index .metadata.labels \"site-type\"}}'" 2>/dev/null)"
+  if [ "${labels}" != "true downstream" ]; then
+    echo "FAIL: ${c} does not carry both labels yet (demo=true, site-type=downstream)."
+    echo "      Run the labelling loop from Task 2 on mgmt."
+    exit 1
+  fi
+done
+
+if ! kc "get gitrepos.fleet.cattle.io -n fleet-default telco-site-console -o name" >/dev/null 2>&1; then
+  echo "FAIL: there is no GitRepo telco-site-console in fleet-default yet."
+  echo "      Run: kubectl apply -f manifests/site-console-gitrepo.yaml"
+  exit 1
+fi
+
+BUNDLES="$(kc "get bundles.fleet.cattle.io -n fleet-default -l fleet.cattle.io/repo-name=telco-site-console -o go-template='{{range .items}}{{.metadata.name}} {{.status.summary.ready}} {{.status.summary.desiredReady}}{{\"\\n\"}}{{end}}'" 2>/dev/null)"
+if [ -z "${BUNDLES}" ]; then
+  echo "FAIL: Fleet has not built a Bundle from the GitRepo yet. Run 'kubectl get gitrepo -n fleet-default' and wait a moment."
+  exit 1
+fi
+while read -r name ready desired; do
+  [ -n "${name}" ] || continue
+  case "${ready}" in ''|*[!0-9]*) ready=0 ;; esac
+  case "${desired}" in ''|*[!0-9]*) desired=0 ;; esac
+  if [ "${desired}" -lt 2 ]; then
+    echo "FAIL: Bundle ${name} targets ${desired} cluster(s), not both sites. Check the labels on both clusters."
+    exit 1
+  fi
+  if [ "${ready}" -lt "${desired}" ]; then
+    echo "FAIL: Bundle ${name} is ready on ${ready} of ${desired} clusters. Run 'kubectl get bundle -n fleet-default' and wait."
+    exit 1
+  fi
+done <<< "${BUNDLES}"
+
+answers() { curl -sf -m 5 -o /dev/null "http://$1:30080/"; }
+if ! answers 192.168.122.21 && ! answers 192.168.122.23 && ! answers 192.168.122.24; then
+  echo "FAIL: the Bundle is ready, but the console on site-co-01 does not answer on port 30080 yet. Wait a moment."
+  exit 1
+fi
+if ! answers 192.168.122.32; then
+  echo "FAIL: the Bundle is ready, but the console on site-ran-01 does not answer on port 30080 yet. Wait a moment."
+  exit 1
+fi
+
+echo "PASS: Fleet delivered the site console from Gitea to both sites."

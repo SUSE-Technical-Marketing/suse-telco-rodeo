@@ -1,0 +1,63 @@
+#!/bin/bash
+# Chapter 6 check, on site-co-01 (kubeconfig from the CAPI Secret on mgmt):
+# KubeVirt and CDI are deployed and VirtualMachine site-co-guest has a
+# Running VMI. Quick reads only; the import and boot take minutes.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH. Wait a minute and check again."
+  exit 1
+fi
+
+# One SSH round trip: print KEY=VALUE lines for what the check needs.
+STATE="$(mgmt_script <<'REMOTE' 2>/dev/null
+KC=$(mktemp)
+trap 'rm -f "$KC"' EXIT
+if ! kubectl get secret -n default site-co-01-kubeconfig -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > "$KC" || [ ! -s "$KC" ]; then
+  echo "kubeconfig=missing"; exit 0
+fi
+k() { kubectl --kubeconfig "$KC" --request-timeout=15s "$@" 2>/dev/null; }
+echo "api=$(k get --raw=/readyz >/dev/null && echo ok || echo down)"
+echo "kubevirt=$(k get kubevirt -n kubevirt-system -o jsonpath='{.items[0].status.phase}')"
+echo "cdi=$(k get cdi -o jsonpath='{.items[0].status.phase}')"
+echo "vm=$(k get vm -n default site-co-guest -o name)"
+echo "dv=$(k get dv -n default site-co-guest-disk -o jsonpath='{.status.phase}')"
+echo "vmi=$(k get vmi -n default site-co-guest -o jsonpath='{.status.phase}')"
+REMOTE
+)"
+val() { printf '%s\n' "${STATE}" | sed -n "s/^$1=//p" | head -n1; }
+
+if [ "$(val kubeconfig)" = "missing" ]; then
+  echo "FAIL: the site-co-01 kubeconfig Secret is not on mgmt. Finish chapter 3 first."
+  exit 1
+fi
+if [ "$(val api)" != "ok" ]; then
+  echo "FAIL: the site-co-01 API at 192.168.122.20:6443 does not answer. Run 'kubectl get nodes' with KUBECONFIG=~/site-co-01.kubeconfig on mgmt."
+  exit 1
+fi
+if [ "$(val kubevirt)" != "Deployed" ]; then
+  echo "FAIL: KubeVirt is not deployed on site-co-01 yet (phase: $(val kubevirt | sed 's/^$/not installed/'))."
+  echo "      Run the helm install and kubectl wait commands from Task 3, with KUBECONFIG pointing at site-co-01."
+  exit 1
+fi
+if [ "$(val cdi)" != "Deployed" ]; then
+  echo "FAIL: CDI is not deployed on site-co-01 yet (phase: $(val cdi | sed 's/^$/not installed/')). See Task 3."
+  exit 1
+fi
+if [ -z "$(val vm)" ]; then
+  echo "FAIL: there is no VirtualMachine site-co-guest on site-co-01 yet."
+  echo "      With KUBECONFIG pointing at site-co-01, run: kubectl apply -f manifests/kubevirt-vm.yaml"
+  exit 1
+fi
+if [ "$(val vmi)" != "Running" ]; then
+  DV="$(val dv)"
+  if [ "${DV}" != "Succeeded" ]; then
+    echo "FAIL: CDI is still importing the guest disk (DataVolume: ${DV:-not created yet}). Run 'kubectl get dv,pvc' and wait for Succeeded."
+  else
+    echo "FAIL: the disk is imported, but site-co-guest is not Running yet (VMI: $(val vmi | sed 's/^$/not created yet/')). Run 'kubectl get vm,vmi' and wait."
+  fi
+  exit 1
+fi
+
+echo "PASS: site-co-guest runs on site-co-01 with Edge Virtualization, next to the site console."

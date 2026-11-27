@@ -1,0 +1,4 @@
+#!/bin/bash
+# Chapter 2 solve: nothing to create. The chapter is read-only, and the
+# check only verifies lab health. A true no-op so Skip never fails here.
+echo ">>> Nothing to solve for Chapter 2: it is identification only."

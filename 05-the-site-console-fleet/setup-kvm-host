@@ -1,0 +1,16 @@
+#!/bin/bash
+# Chapter 5 setup: confirm the Gitea copy of the console repository answers
+# on mgmt before the student opens the Gitea tab. Bounded (about 2 minutes)
+# and non-fatal: it only logs, it never blocks the chapter.
+set -uo pipefail
+
+URL="http://192.168.122.10:3000/api/v1/repos/gitea/telco-site-console"
+for _ in $(seq 1 12); do
+  if curl -sf -m 5 -o /dev/null "${URL}"; then
+    echo ">>> Gitea on mgmt serves gitea/telco-site-console."
+    exit 0
+  fi
+  sleep 10
+done
+echo ">>> warn: Gitea on 192.168.122.10:3000 does not serve gitea/telco-site-console yet (non-fatal)."
+exit 0

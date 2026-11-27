@@ -1,0 +1,30 @@
+#!/bin/bash
+# Chapter 5 solve: label both sites, apply the GitRepo, and wait (up to 10
+# minutes) for the Bundle to be ready on both clusters.
+set -euo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+echo ">>> Making sure the workshop files are on mgmt ..."
+ensure_workshop_files
+
+for c in site-co-01 site-ran-01; do
+  id="$(rancher_cluster_id "${c}")"
+  if [ -z "${id}" ]; then
+    echo ">>> ${c} is not in Rancher; chapters 3 and 4 must be done first."
+    exit 1
+  fi
+  echo ">>> Labelling ${c} (${id}) demo=true site-type=downstream ..."
+  kc "label clusters.management.cattle.io ${id} demo=true site-type=downstream --overwrite" >/dev/null
+done
+
+echo ">>> Applying manifests/site-console-gitrepo.yaml ..."
+mgmt "cd ${WORKSHOP_DIR} && kubectl apply -f manifests/site-console-gitrepo.yaml"
+
+bundle_ready() {
+  local out
+  out="$(kc "get bundles.fleet.cattle.io -n fleet-default -l fleet.cattle.io/repo-name=telco-site-console -o go-template='{{range .items}}{{.status.summary.ready}} {{.status.summary.desiredReady}}{{\"\\n\"}}{{end}}'" 2>/dev/null)"
+  [ -n "${out}" ] || return 1
+  ! printf '%s\n' "${out}" | awk 'NF { if ($2 !~ /^[0-9]+$/ || $2 < 2 || $1 != $2) bad=1 } END { exit !bad }'
+}
+wait_for 600 "site console Bundle ready on both sites" bundle_ready
+echo ">>> Chapter 5 solved."

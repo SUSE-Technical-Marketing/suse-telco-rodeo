@@ -1,0 +1,26 @@
+#!/bin/bash
+# Chapter 3 solve: apply manifests/site-co.yaml from the workshop files on
+# mgmt, then wait for the end state the check verifies: three Running
+# machines and the Rancher import Ready. Provisioning three hosts took about
+# 10 minutes on the tested host, so this waits up to 25 minutes and fails
+# (stopping a skip) if the cluster is still not there.
+set -euo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+NS=default
+CLUSTER=site-co-01
+
+echo ">>> Making sure the workshop files are on mgmt ..."
+ensure_workshop_files
+
+if cluster_exists "${NS}" "${CLUSTER}"; then
+  echo ">>> ${CLUSTER} already exists; not applying again."
+else
+  echo ">>> Applying manifests/site-co.yaml ..."
+  mgmt "cd ${WORKSHOP_DIR} && kubectl apply -f manifests/site-co.yaml"
+fi
+
+three_running() { [ "$(running_machines "${NS}" "${CLUSTER}")" -ge 3 ] 2>/dev/null; }
+wait_for 1500 "${CLUSTER}: 3 machines Running" three_running
+wait_for 300 "${CLUSTER}: imported and Ready in Rancher" rancher_cluster_ready "${CLUSTER}"
+echo ">>> Chapter 3 solved."

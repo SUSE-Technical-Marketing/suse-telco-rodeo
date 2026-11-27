@@ -1,0 +1,26 @@
+#!/bin/bash
+# Chapter 1 check: the student opened a shell on mgmt and fetched the
+# workshop files into /root/suse-telco-workshop-main (Task 2). Also confirms
+# the management cluster node is Ready, so later chapters start healthy.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH yet. Wait a minute and check again."
+  exit 1
+fi
+
+if ! mgmt "test -f ${WORKSHOP_DIR}/manifests/site-co.yaml"; then
+  echo "FAIL: the workshop files are not on mgmt yet."
+  echo "      In your shell on mgmt, run the curl ... | tar xz command from Task 2."
+  echo "      It must unpack into ${WORKSHOP_DIR}."
+  exit 1
+fi
+
+READY="$(kc "get node mgmt -o jsonpath='{.status.conditions[?(@.type==\"Ready\")].status}'" 2>/dev/null)"
+if [ "${READY}" != "True" ]; then
+  echo "FAIL: the management cluster node mgmt is not Ready. Run 'kubectl get nodes' on mgmt and wait for Ready."
+  exit 1
+fi
+
+echo "PASS: your shell on mgmt is set up, the workshop files are in place and the management cluster is Ready."

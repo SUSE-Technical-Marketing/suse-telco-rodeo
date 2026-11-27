@@ -1,0 +1,20 @@
+#!/bin/bash
+# Chapter 4 solve: apply the ClusterClass and site-ran-01 from the workshop
+# files on mgmt, then wait (up to 20 minutes) for one Running machine and
+# the Rancher import. Fails, and stops a skip, if the cluster never gets there.
+set -euo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+NS=northline
+CLUSTER=site-ran-01
+
+echo ">>> Making sure the workshop files are on mgmt ..."
+ensure_workshop_files
+
+echo ">>> Applying manifests/clusterclass.yaml and manifests/site-ran.yaml ..."
+mgmt "cd ${WORKSHOP_DIR} && kubectl apply -f manifests/clusterclass.yaml && kubectl apply -f manifests/site-ran.yaml"
+
+one_running() { [ "$(running_machines "${NS}" "${CLUSTER}")" -ge 1 ] 2>/dev/null; }
+wait_for 1200 "${CLUSTER}: machine Running" one_running
+wait_for 300 "${CLUSTER}: imported and Ready in Rancher" rancher_cluster_ready "${CLUSTER}"
+echo ">>> Chapter 4 solved."

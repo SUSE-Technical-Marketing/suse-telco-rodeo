@@ -1,0 +1,46 @@
+#!/bin/bash
+# Chapter 3 check: site-co-01 exists, all three control-plane machines are
+# Running, and Rancher Turtles imported it (Rancher reports it Ready).
+# Quick state reads only: provisioning takes minutes, the check never waits.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+NS=default
+CLUSTER=site-co-01
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH. Wait a minute and check again."
+  exit 1
+fi
+
+if ! cluster_exists "${NS}" "${CLUSTER}"; then
+  echo "FAIL: there is no cluster ${CLUSTER} yet."
+  echo "      In your shell on mgmt, in ~/suse-telco-workshop-main, run: kubectl apply -f manifests/site-co.yaml"
+  exit 1
+fi
+
+RUNNING="$(running_machines "${NS}" "${CLUSTER}")"
+PHASES="$(machine_phases "${NS}" "${CLUSTER}" | sort | uniq -c | awk '{printf "%s %s, ", $1, $2}' | sed 's/, $//')"
+if [ "${RUNNING:-0}" -lt 3 ]; then
+  echo "FAIL: ${CLUSTER} is still being built: ${RUNNING:-0} of 3 machines are Running (${PHASES:-no machines yet})."
+  echo "      This takes several minutes. Watch 'kubectl get machines -n ${NS}' and check again when all three are Running."
+  exit 1
+fi
+
+PHASE="$(cluster_phase "${NS}" "${CLUSTER}")"
+if [ "${PHASE}" != "Provisioned" ]; then
+  echo "FAIL: all three machines are Running, but Cluster API reports ${CLUSTER} as '${PHASE:-unknown}'. Wait a moment and check again."
+  exit 1
+fi
+
+if [ -z "$(rancher_cluster_id "${CLUSTER}")" ]; then
+  echo "FAIL: ${CLUSTER} is built, but Rancher has not imported it yet."
+  echo "      Check that the Cluster carries the label cluster-api.cattle.io/rancher-auto-import: \"true\", then wait a minute."
+  exit 1
+fi
+if ! rancher_cluster_ready "${CLUSTER}"; then
+  echo "FAIL: Rancher is importing ${CLUSTER}, but it is not Active yet. Watch Cluster Management in Rancher and check again."
+  exit 1
+fi
+
+echo "PASS: ${CLUSTER} runs on three servers and Rancher Prime manages it."

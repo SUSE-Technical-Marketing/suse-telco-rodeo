@@ -1,0 +1,19 @@
+#!/bin/bash
+# Chapter 1 setup: give mgmt a moment if the lab was just started.
+#
+# Waits (bounded, about 3 minutes) for mgmt to answer over SSH and for the
+# management cluster API to respond, so the student's first `ssh` and
+# `kubectl` do not land on a node that is still booting. Non-fatal by design:
+# it never blocks the chapter, it only logs what it saw.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+for _ in $(seq 1 18); do
+  if kc "get --raw=/readyz" >/dev/null 2>&1; then
+    echo ">>> mgmt and the management cluster API are up."
+    exit 0
+  fi
+  sleep 10
+done
+echo ">>> warn: the management cluster API did not answer yet (non-fatal). The check will say what is missing."
+exit 0

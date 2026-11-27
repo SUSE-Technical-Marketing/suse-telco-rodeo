@@ -1,0 +1,39 @@
+#!/bin/bash
+# Chapter 6 solve: on site-co-01, install KubeVirt and CDI at the 3.7 pins,
+# apply VirtualMachine site-co-guest, and wait for its VMI to run. Also
+# writes /root/site-co-01.kubeconfig on mgmt, the file Task 1 creates.
+# Budget: KubeVirt up to 10 min, CDI up to 5 min, guest up to 12 min.
+set -euo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+echo ">>> Making sure the workshop files are on mgmt ..."
+ensure_workshop_files
+
+mgmt_script <<REMOTE
+set -euo pipefail
+kubectl get secret -n default site-co-01-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /root/site-co-01.kubeconfig
+chmod 600 /root/site-co-01.kubeconfig
+export KUBECONFIG=/root/site-co-01.kubeconfig
+kubectl get nodes
+echo ">>> Installing KubeVirt and CDI (chart 307.0.3+up0.8.0) ..."
+helm upgrade --install kubevirt oci://registry.suse.com/edge/charts/kubevirt \
+  --version 307.0.3+up0.8.0 -n kubevirt-system --create-namespace
+helm upgrade --install cdi oci://registry.suse.com/edge/charts/cdi \
+  --version 307.0.3+up0.8.0 -n cdi-system --create-namespace
+# The KubeVirt and CDI objects appear a moment after the operators start.
+for _ in \$(seq 1 30); do
+  kubectl -n kubevirt-system get kubevirt -o name 2>/dev/null | grep -q . && \
+    kubectl -n cdi-system get cdi -o name 2>/dev/null | grep -q . && break
+  sleep 10
+done
+kubectl -n kubevirt-system wait kubevirt --all --for=condition=Available --timeout=600s
+kubectl -n cdi-system wait cdi --all --for=condition=Available --timeout=300s
+echo ">>> Applying manifests/kubevirt-vm.yaml ..."
+kubectl apply -f ${WORKSHOP_DIR}/manifests/kubevirt-vm.yaml
+REMOTE
+
+vmi_running() {
+  [ "$(mgmt "kubectl --kubeconfig /root/site-co-01.kubeconfig --request-timeout=15s get vmi -n default site-co-guest -o jsonpath='{.status.phase}'" 2>/dev/null)" = "Running" ]
+}
+wait_for 720 "site-co-guest Running" vmi_running
+echo ">>> Chapter 6 solved."

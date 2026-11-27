@@ -1,0 +1,52 @@
+#!/bin/bash
+# Chapter 4 check: ClusterClass example-clusterclass exists in northline,
+# site-ran-01 has its one machine Running and Rancher reports it Ready.
+# Also re-confirms site-co-01, so a broken central office shows up here and
+# not only in chapter 6.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+NS=northline
+CLUSTER=site-ran-01
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH. Wait a minute and check again."
+  exit 1
+fi
+
+if ! kc "get clusterclasses.cluster.x-k8s.io -n ${NS} example-clusterclass -o name" >/dev/null 2>&1; then
+  echo "FAIL: ClusterClass example-clusterclass is not in namespace ${NS} yet."
+  echo "      In your shell on mgmt, in ~/suse-telco-workshop-main, run: kubectl apply -f manifests/clusterclass.yaml"
+  exit 1
+fi
+
+if ! cluster_exists "${NS}" "${CLUSTER}"; then
+  echo "FAIL: the template is there, but there is no cluster ${CLUSTER} yet."
+  echo "      Run: kubectl apply -f manifests/site-ran.yaml"
+  exit 1
+fi
+
+RUNNING="$(running_machines "${NS}" "${CLUSTER}")"
+if [ "${RUNNING:-0}" -lt 1 ]; then
+  PHASES="$(machine_phases "${NS}" "${CLUSTER}" | tr '\n' ' ')"
+  echo "FAIL: ${CLUSTER} is still being built (machine: ${PHASES:-not created yet})."
+  echo "      Watch 'kubectl get machines -n ${NS}' and check again when it is Running."
+  exit 1
+fi
+
+if [ -z "$(rancher_cluster_id "${CLUSTER}")" ]; then
+  echo "FAIL: ${CLUSTER} is built, but Rancher has not imported it yet. Wait a minute and check again."
+  exit 1
+fi
+if ! rancher_cluster_ready "${CLUSTER}"; then
+  echo "FAIL: Rancher is importing ${CLUSTER}, but it is not Active yet. Watch Cluster Management in Rancher and check again."
+  exit 1
+fi
+
+if [ "$(running_machines default site-co-01)" -lt 3 ] 2>/dev/null || ! rancher_cluster_ready site-co-01; then
+  echo "FAIL: ${CLUSTER} is fine, but site-co-01 is no longer healthy (3 Running machines, Active in Rancher)."
+  echo "      Run 'kubectl get machines -n default' on mgmt and look at site-co-01 in Rancher."
+  exit 1
+fi
+
+echo "PASS: ${CLUSTER} came from the ClusterClass, and both sites are Active in Rancher Prime."

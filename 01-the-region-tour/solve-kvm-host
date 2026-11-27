@@ -1,0 +1,9 @@
+#!/bin/bash
+# Chapter 1 solve: put the workshop files on mgmt where Task 2 puts them.
+# The rest of the chapter is reading, so that is the whole end state.
+set -euo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+echo ">>> Fetching the workshop files on mgmt into ${WORKSHOP_DIR} ..."
+ensure_workshop_files
+echo ">>> Chapter 1 solved."

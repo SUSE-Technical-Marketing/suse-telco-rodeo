@@ -1,0 +1,46 @@
+#!/bin/bash
+# Chapter 2 check: a read-only chapter, so this verifies the lab is in the
+# state the next chapter needs: the controllers that build a site are
+# Available and all four BareMetalHosts are `available`. It passes on a
+# healthy lab before the student does anything, like the virt rodeo's
+# chapter 1 health check.
+set -uo pipefail
+. "$(dirname "$0")/../lib/telco.sh"
+
+if ! mgmt_reachable; then
+  echo "FAIL: mgmt (192.168.122.10) does not answer over SSH. Wait a minute and check again."
+  exit 1
+fi
+
+for ns in cattle-turtles-system cattle-capi-system capm3-system rke2-bootstrap-system rke2-control-plane-system metal3-system; do
+  NOT_READY="$(kc "get deploy -n ${ns} -o jsonpath='{range .items[*]}{.metadata.name}={.status.availableReplicas}/{.spec.replicas}{\"\\n\"}{end}'" 2>/dev/null \
+    | awk -F'[=/]' '{a = ($2 == "" ? 0 : $2)} a != $3 {print $1}' | tr '\n' ' ')"
+  COUNT="$(kc "get deploy -n ${ns} --no-headers" 2>/dev/null | wc -l)"
+  if [ "${COUNT}" -eq 0 ]; then
+    echo "FAIL: no controllers found in namespace ${ns}. Run 'kubectl get pods -n ${ns}' on mgmt."
+    exit 1
+  fi
+  if [ -n "${NOT_READY}" ]; then
+    echo "FAIL: not every controller in ${ns} is Available yet: ${NOT_READY}"
+    echo "      Run 'kubectl get pods -n ${ns}' on mgmt and wait for Running."
+    exit 1
+  fi
+done
+
+STATES="$(kc "get baremetalhosts -A -o jsonpath='{range .items[*]}{.metadata.name}={.status.provisioning.state}{\"\\n\"}{end}'" 2>/dev/null)"
+TOTAL="$(printf '%s\n' "${STATES}" | grep -c '=' || true)"
+# available is the expected state. provisioning/provisioned only means the
+# student already applied a site cluster: also fine for the next chapters.
+BAD="$(printf '%s\n' "${STATES}" | grep '=' | grep -Ev '=(available|provisioning|provisioned)$' || true)"
+if [ "${TOTAL}" -lt 4 ]; then
+  echo "FAIL: expected 4 BareMetalHosts, found ${TOTAL}. Run 'kubectl get baremetalhosts -A' on mgmt."
+  exit 1
+fi
+if [ -n "${BAD}" ]; then
+  echo "FAIL: some BareMetalHosts are not available:"
+  printf '      %s\n' ${BAD}
+  echo "      A host that is not available cannot be picked for a cluster. Ask your instructor if this does not change."
+  exit 1
+fi
+
+echo "PASS: the management stack is Available and all 4 site servers are ready to build on."
