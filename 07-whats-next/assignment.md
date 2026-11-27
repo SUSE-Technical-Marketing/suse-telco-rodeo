@@ -3,7 +3,7 @@ slug: whats-next
 id: xm4y6fhob18l
 type: challenge
 title: "\U0001F305 Chapter 7: What's Next"
-teaser: Northline's region now runs from one management cluster. Review what you built, explore the lab while it lasts, and see where the same pattern goes on real hardware.
+teaser: Northline's region now runs from one management cluster. Review what you built, look around the lab while it lasts, and see where the same pattern goes on real hardware.
 tabs:
 - id: 2prxuw1hrl2b
   title: Terminal

@@ -167,7 +167,7 @@ cd ~/suse-telco-workshop-main
 
 Fleet needs a Git repository to read from. A far-edge site should not depend on the internet for that, so the source lives on `mgmt`.
 
-Open the [button label="Gitea" variant="success"](tab-2) tab: Gitea on `mgmt`, at `http://192.168.122.10:3000`. If it opens on the start page, click **Explore** in the top bar and open the repository `gitea/telco-site-console`.
+Open the [button label="Gitea" variant="success"](tab-2) tab. It opens the `gitea/telco-site-console` repository in Gitea on `mgmt`.
 
 rodeo copied `https://github.com/avaleror/telco-site-console.git` into this Gitea when it built the lab. Fleet never goes to GitHub during the lab. Open `fleet.yaml` in the repository: it is how Fleet knows what to deploy from it.
 
