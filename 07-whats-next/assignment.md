@@ -143,7 +143,29 @@ The wall map in the operations room has two green dots now. Ingrid looks at them
 🔐 Credentials
 ==============
 
-Rancher Prime: user `admin`, password in the player's **Credentials** panel, under **SUSE Rancher Prime**. Your terminal logs in to `mgmt` with your SSH key, no password.
+The **SUSE Rancher Prime** UI uses the `admin` user. The password is below, and also in the **Credentials** panel in the header.
+
+Username:
+
+<div class="cred">
+
+```txt
+admin
+```
+
+</div>
+
+Password:
+
+<div class="cred">
+
+```txt
+[[ Instruqt-Var key="RANCHER_PASSWORD" hostname="kvm-host" ]]
+```
+
+</div>
+
+Your terminal logs in to `mgmt` with your SSH key, no password.
 
 🧭 Victory lap: the lab is still yours
 ======================================

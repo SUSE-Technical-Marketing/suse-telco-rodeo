@@ -123,7 +123,29 @@ This chapter is about identification. `rodeo up` already installed the managemen
 🔐 Credentials
 ==============
 
-Rancher Prime: user `admin`, password in the player's **Credentials** panel, under **SUSE Rancher Prime**. Your terminal logs in to `mgmt` with your SSH key, no password.
+The **SUSE Rancher Prime** UI uses the `admin` user. The password is below, and also in the **Credentials** panel in the header.
+
+Username:
+
+<div class="cred">
+
+```txt
+admin
+```
+
+</div>
+
+Password:
+
+<div class="cred">
+
+```txt
+[[ Instruqt-Var key="RANCHER_PASSWORD" hostname="kvm-host" ]]
+```
+
+</div>
+
+Your terminal logs in to `mgmt` with your SSH key, no password.
 
 ⌨️ Your shell on mgmt
 =====================

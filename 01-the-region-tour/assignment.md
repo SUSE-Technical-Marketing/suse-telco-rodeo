@@ -161,7 +161,15 @@ admin
 
 </div>
 
-Password: open the **Credentials** panel and copy it from the **SUSE Rancher Prime** entry.
+Password:
+
+<div class="cred">
+
+```txt
+[[ Instruqt-Var key="RANCHER_PASSWORD" hostname="kvm-host" ]]
+```
+
+</div>
 
 Your terminal needs no password. Your own SSH key logs you in to `mgmt` as root. The **mgmt VM (console)** entry is for a VM console, and this track does not use one.
 
@@ -260,7 +268,7 @@ It already holds `eibimage-downstream-cluster.raw` and its `.sha256`. rodeo buil
 🐮 Task 4: Log in to Rancher Prime
 ==================================
 
-Open the [button label="SUSE Rancher Prime" variant="success"](tab-1) tab and log in as `admin`, with the password from the **Credentials** panel.
+Open the [button label="SUSE Rancher Prime" variant="success"](tab-1) tab and log in as `admin`, with the password above.
 
 > [!NOTE]
 > Rancher uses its own self-signed certificate. Accept the browser warning if one appears.
