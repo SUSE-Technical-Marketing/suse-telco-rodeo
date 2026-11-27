@@ -16,7 +16,7 @@ fi
 
 if ! kc "get clusterclasses.cluster.x-k8s.io -n ${NS} example-clusterclass -o name" >/dev/null 2>&1; then
   echo "FAIL: ClusterClass example-clusterclass is not in namespace ${NS} yet."
-  echo "      In your shell on mgmt, in ~/suse-telco-workshop-main, run: kubectl apply -f manifests/clusterclass.yaml"
+  echo "      In your shell on mgmt, in ~/suse-telco-workshop, run: kubectl apply -f manifests/clusterclass.yaml"
   exit 1
 fi
 

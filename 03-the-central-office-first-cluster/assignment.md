@@ -158,7 +158,7 @@ ssh root@192.168.122.10
 ```
 
 ```bash,wrap,run
-cd ~/suse-telco-workshop-main
+cd ~/suse-telco-workshop
 ```
 
 📜 Task 1: Read the plan
@@ -239,7 +239,7 @@ Run both commands again every minute or two. The cluster turns `Available` after
 Wait until all three machines are `Running` before you click **Check**.
 
 > [!NOTE]
-> While you wait, open the [button label="Terminal" variant="success"](tab-0), type `exit` to go back to the KVM host and run `virsh list --all`. The `site-co` hosts are running: Metal3 drives their power through the BMC, not you. Then `ssh root@192.168.122.10` and `cd ~/suse-telco-workshop-main` to come back.
+> While you wait, open the [button label="Terminal" variant="success"](tab-0), type `exit` to go back to the KVM host and run `virsh list --all`. The `site-co` hosts are running: Metal3 drives their power through the BMC, not you. Then `ssh root@192.168.122.10` and `cd ~/suse-telco-workshop` to come back.
 
 🐮 Task 4: Find site-co-01 in Rancher Prime
 ===========================================

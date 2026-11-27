@@ -181,7 +181,7 @@ ssh root@192.168.122.10
 ```
 
 ```bash,wrap,run
-cd ~/suse-telco-workshop-main
+cd ~/suse-telco-workshop
 ```
 
 📦 Task 1: Find the source in Gitea

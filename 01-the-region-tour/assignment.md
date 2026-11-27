@@ -232,8 +232,10 @@ ssh root@192.168.122.10
 The prompt changes to `mgmt`. Fetch the workshop files and stay in that directory for the rest of the track:
 
 ```bash,wrap,run
-curl -fsSL https://github.com/avaleror/suse-telco-workshop/archive/refs/heads/main.tar.gz | tar xz
-cd suse-telco-workshop-main
+mkdir -p suse-telco-workshop
+curl -fsSL https://github.com/avaleror/suse-telco-workshop/archive/refs/tags/rodeo-v1.tar.gz \
+  | tar xz --strip-components=1 -C suse-telco-workshop
+cd suse-telco-workshop
 ls manifests
 ```
 
@@ -249,7 +251,7 @@ kubectl version
 One node, `mgmt`, `Ready`. The server version reads `v1.36.3+rke2r1`: the management cluster is RKE2 on SUSE Linux Micro 6.2.
 
 > [!NOTE]
-> `virsh` runs on the KVM host, not on `mgmt`. To go back to the host, type `exit`. To come back to `mgmt`, run the `ssh` command again and `cd ~/suse-telco-workshop-main`.
+> `virsh` runs on the KVM host, not on `mgmt`. To go back to the host, type `exit`. To come back to `mgmt`, run the `ssh` command again and `cd ~/suse-telco-workshop`.
 
 💽 Task 3: Find the image cache
 ===============================

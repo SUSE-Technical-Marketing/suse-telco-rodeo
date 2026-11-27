@@ -12,8 +12,8 @@
 MGMT_IP="192.168.122.10"
 MGMT_KEY="/root/.ssh/id_ed25519"
 # Where chapter 1 tells the student to unpack the workshop files on mgmt.
-WORKSHOP_DIR="/root/suse-telco-workshop-main"
-WORKSHOP_TARBALL="https://github.com/avaleror/suse-telco-workshop/archive/refs/heads/main.tar.gz"
+WORKSHOP_DIR="/root/suse-telco-workshop"
+WORKSHOP_TARBALL="https://github.com/avaleror/suse-telco-workshop/archive/refs/tags/rodeo-v1.tar.gz"
 
 # Remote preamble: kubectl and helm live in /usr/local/bin on mgmt.
 _MGMT_ENV='export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin; export KUBECONFIG=/etc/rancher/rke2/rke2.yaml;'
@@ -48,7 +48,7 @@ ensure_workshop_files() {
 set -e
 cd "\$(dirname ${WORKSHOP_DIR})"
 if [ ! -f ${WORKSHOP_DIR}/manifests/site-co.yaml ]; then
-  curl -fsSL ${WORKSHOP_TARBALL} | tar xz
+  mkdir -p ${WORKSHOP_DIR} && curl -fsSL ${WORKSHOP_TARBALL} | tar xz --strip-components=1 -C ${WORKSHOP_DIR}
 fi
 test -f ${WORKSHOP_DIR}/manifests/site-co.yaml
 EOF

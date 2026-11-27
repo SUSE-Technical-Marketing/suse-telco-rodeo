@@ -15,7 +15,7 @@ fi
 
 if ! cluster_exists "${NS}" "${CLUSTER}"; then
   echo "FAIL: there is no cluster ${CLUSTER} yet."
-  echo "      In your shell on mgmt, in ~/suse-telco-workshop-main, run: kubectl apply -f manifests/site-co.yaml"
+  echo "      In your shell on mgmt, in ~/suse-telco-workshop, run: kubectl apply -f manifests/site-co.yaml"
   exit 1
 fi
 

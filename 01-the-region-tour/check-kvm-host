@@ -1,6 +1,6 @@
 #!/bin/bash
 # Chapter 1 check: the student opened a shell on mgmt and fetched the
-# workshop files into /root/suse-telco-workshop-main (Task 2). Also confirms
+# workshop files into /root/suse-telco-workshop (Task 2). Also confirms
 # the management cluster node is Ready, so later chapters start healthy.
 set -uo pipefail
 . "$(dirname "$0")/../lib/telco.sh"
