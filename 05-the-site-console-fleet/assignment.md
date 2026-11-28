@@ -263,7 +263,7 @@ Live panels are cluster facts. Simulated rows stay labelled simulated.
 - **Git is the record.** Every site runs what is in the repository. To change the console everywhere, change the repository.
 - **No internet needed at the site.** Fleet reads from Gitea on the management cluster, which suits sites on thin or closed links.
 
-Click **Check** when the Bundle is ready on both sites.
+Click **Check my work** when the Bundle is ready on both sites.
 
 📚 More information
 ===================

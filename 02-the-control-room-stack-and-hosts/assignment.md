@@ -277,7 +277,7 @@ You see the same four hosts. Rancher reads the same Kubernetes objects you just 
 - **Servers as inventory.** Each server is a `BareMetalHost` with a state, a BMC address and labels. A cluster asks for hosts by label, never by name.
 - **The same API on real hardware.** Swap the BMC address and the rest of the YAML stays the same.
 
-Click **Check** to confirm the stack is healthy and all four servers are ready to build on.
+Click **Check my work** to confirm the stack is healthy and all four servers are ready to build on.
 
 📚 More information
 ===================

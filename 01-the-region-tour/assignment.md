@@ -286,7 +286,7 @@ The region has no sites in Rancher yet. You create them in chapters 3 and 4.
 - **Servers as an API.** Metal3 sees a Redfish BMC, whether it is sushy-tools in this lab or a real server's controller. The YAML you write stays the same.
 - **No image download per site.** Sites boot from the cache on `mgmt`, which matters when a far-edge site sits on a thin link.
 
-Click **Check** to confirm your shell and the workshop files are in place.
+Click **Check my work** to confirm your shell and the workshop files are in place.
 
 📚 More information
 ===================

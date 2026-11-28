@@ -227,7 +227,7 @@ The SUSE Telco Cloud guide does not publish a downstream count of its own. More 
 - **One change, every site.** Fix the class and every cluster made from it follows. Nobody edits a pile of hand-written files.
 - **One view for the region.** The central office and the far edge sit side by side in the same Rancher Prime, with the same access control.
 
-Click **Check** when the `site-ran-01` machine is `Running`.
+Click **Check my work** when the `site-ran-01` machine is `Running`.
 
 📚 More information
 ===================

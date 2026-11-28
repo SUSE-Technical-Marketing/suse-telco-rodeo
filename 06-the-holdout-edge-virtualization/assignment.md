@@ -283,7 +283,7 @@ The install steps are in the [Edge Virtualization](https://documentation.suse.co
 - **The disk is protected.** SUSE Storage keeps three replicas of the guest disk, one per host, so the VM's data survives the loss of a server.
 - **A path off the VM.** When the vendor ships a container version, it moves to the same cluster. Nothing else about the site changes.
 
-Click **Check** when `site-co-guest` is `Running`.
+Click **Check my work** when `site-co-guest` is `Running`.
 
 📚 More information
 ===================

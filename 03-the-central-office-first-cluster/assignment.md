@@ -262,7 +262,7 @@ Wait until `site-co-01` shows **Active**, then open it and look at its three nod
 - **Hosts by label.** The plan asks for any three hosts with the right labels. Replace a dead server with a new one that has the same labels, and the plan still works.
 - **In Rancher without a manual step.** The auto-import label puts every new cluster under the same management and access control as the rest of the region.
 
-Click **Check** when all three machines are `Running`.
+Click **Check my work** when all three machines are `Running`.
 
 📚 More information
 ===================
